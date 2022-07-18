@@ -51,5 +51,7 @@
 	<false/>
   <key>UIStatusBarStyle</key>
   <string>UIStatusBarStyleDefault</string>
+  <key>NSContactsUsageDescription</key>
+  <string>Allow $(PRODUCT_NAME) to access your contacts</string>
 </dict>
 </plist>
