@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { ReactText, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -7,8 +7,11 @@ import {
   FlatList,
   ListRenderItem,
   Pressable,
+  Linking,
 } from "react-native";
 import * as Contacts from "expo-contacts";
+import { DeviceEventEmitter } from "react-native";
+import QuickActions from "react-native-quick-actions";
 
 import FakeyText from "./components/FakeyText";
 import { getContacts } from "./utilities/getContacts";
@@ -22,7 +25,14 @@ const renderItem: ListRenderItem<Contacts.Contact> = ({ item }) => (
       name={item.name}
       style={{ backgroundColor: colors[Math.floor(Math.random() * 3)] }}
     />
-    <FakeyText text={item.name} style={{ marginLeft: 16 }} />
+
+    <View style={{ marginLeft: 16 }}>
+      <FakeyText text={item.name} />
+      <FakeyText
+        text={item.phoneNumbers?.[0]?.number!}
+        style={{ fontSize: 12, marginTop: 8 }}
+      />
+    </View>
   </Pressable>
 );
 
@@ -41,7 +51,27 @@ export default function App() {
     getContacts().then((contacts) => {
       setContacts(contacts!);
       setIsLoading(false);
+
+      QuickActions.setShortcutItems(
+        contacts?.map((contact) => ({
+          type: "contact",
+          title: contact.name,
+          icon: "splashscreen_image",
+          userInfo: { url: contact.phoneNumbers?.[0].number! },
+        }))!
+      );
     });
+
+    const listener = DeviceEventEmitter.addListener(
+      "quickActionShortcut",
+      (data) => Linking.openURL(`tel:${data.userInfo.url}`)
+    );
+
+    QuickActions.popInitialAction()
+      .then((data) => Linking.openURL(`tel:${data.userInfo.url}`))
+      .catch(console.error);
+
+    return () => listener.remove();
   }, []);
 
   return (

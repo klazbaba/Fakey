@@ -53,5 +53,16 @@
   <string>UIStatusBarStyleDefault</string>
   <key>NSContactsUsageDescription</key>
   <string>Allow $(PRODUCT_NAME) to access your contacts</string>
+  <key>UIApplicationShortcutItems</key>
+  <array>
+	<dict>
+		<key>UIApplicationShortcutItemIconType</key>
+		<string>UIApplicationShortcutIconTypeLocation</string>
+		<key>UIApplicationShortcutItemTitle</key>
+		<string>Contacts</string>
+		<key>UIApplicationShortcutItemType</key>
+		<string>contact</string>
+	</dict>
+  </array>
 </dict>
 </plist>

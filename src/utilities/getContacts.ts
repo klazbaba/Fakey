@@ -17,7 +17,7 @@ export const getContacts = async () => {
     );
   else if (status === "granted") {
     const { data } = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.Emails],
+      fields: [Contacts.Fields.PhoneNumbers],
     });
     return data;
   }
