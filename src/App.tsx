@@ -44,11 +44,29 @@ const renderItem: ListRenderItem<Contacts.Contact> = ({ item }) => (
   </Pressable>
 );
 
+const setNotificationCategory = async () => {
+  await notifee.setNotificationCategories([
+    {
+      id: "faker",
+      actions: [
+        {
+          id: "reject",
+          title: "Reject",
+        },
+        {
+          id: "accept",
+          title: "Accept",
+        },
+      ],
+    },
+  ]);
+};
+
 const displayNotification = async () => {
-  await notifee.requestPermission();
+  await notifee.requestPermission({ criticalAlert: true });
   const channelId = await notifee.createChannel({
     id: "default1",
-    name: "Fakey Android Notification Channel",
+    name: "Fakey Notification Channel",
     bypassDnd: true,
     description: "You have an incoming call",
     importance: AndroidImportance.HIGH,
@@ -74,6 +92,17 @@ const displayNotification = async () => {
           pressAction: { id: "accept", launchActivity: "default" },
         },
       ],
+      sound: "ringtone",
+    },
+    ios: {
+      foregroundPresentationOptions: {
+        sound: true,
+      },
+      sound: "ringtone.wav",
+      // A special request is required from Apple for critical notifications to work https://developer.apple.com/documentation/usernotifications/unauthorizationoptions/2963120-criticalalert
+      critical: true,
+      criticalVolume: 1.0,
+      categoryId: "faker",
     },
   });
 };
@@ -121,6 +150,7 @@ export default function App() {
       })
       .catch(console.error);
 
+    setNotificationCategory();
     // Simulate incoming call
     setTimeout(() => displayNotification(), 5000);
 
