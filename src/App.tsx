@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { ReactText, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -8,10 +8,18 @@ import {
   ListRenderItem,
   Pressable,
   Linking,
+  Alert,
 } from "react-native";
 import * as Contacts from "expo-contacts";
 import { DeviceEventEmitter } from "react-native";
 import QuickActions from "react-native-quick-actions";
+import notifee, {
+  AndroidCategory,
+  AndroidColor,
+  AndroidImportance,
+  AndroidVisibility,
+  EventType,
+} from "@notifee/react-native";
 
 import FakeyText from "./components/FakeyText";
 import { getContacts } from "./utilities/getContacts";
@@ -35,6 +43,34 @@ const renderItem: ListRenderItem<Contacts.Contact> = ({ item }) => (
     </View>
   </Pressable>
 );
+
+const displayNotification = async () => {
+  await notifee.requestPermission();
+  const channelId = await notifee.createChannel({
+    id: "default0",
+    name: "Fakey Android Notification Channel",
+    bypassDnd: true,
+    description: "You have an incoming call",
+    importance: AndroidImportance.HIGH,
+    lightColor: AndroidColor.WHITE,
+    sound: "default",
+    visibility: AndroidVisibility.PUBLIC,
+  });
+
+  await notifee.displayNotification({
+    title: "Incoming Call",
+    body: "John",
+    android: {
+      channelId,
+      fullScreenAction: { id: "default" },
+      category: AndroidCategory.CALL,
+      actions: [
+        { title: "Reject", pressAction: { id: "reject" } },
+        { title: "Accept", pressAction: { id: "accept" } },
+      ],
+    },
+  });
+};
 
 export default function App() {
   const [contacts, setContacts] = useState<Contacts.Contact[]>([]);
@@ -62,14 +98,25 @@ export default function App() {
       );
     });
 
+    notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.ACTION_PRESS && detail.pressAction?.id) {
+        Alert.alert(`Call was ${detail.pressAction?.id}ed`);
+      }
+    });
+
     const listener = DeviceEventEmitter.addListener(
       "quickActionShortcut",
       (data) => Linking.openURL(`tel:${data.userInfo.url}`)
     );
 
     QuickActions.popInitialAction()
-      .then((data) => Linking.openURL(`tel:${data.userInfo.url}`))
+      .then((data) => {
+        if (data) Linking.openURL(`tel:${data.userInfo.url}`);
+      })
       .catch(console.error);
+
+    // Simulate incoming call
+    setTimeout(() => displayNotification(), 5000);
 
     return () => listener.remove();
   }, []);
@@ -98,7 +145,7 @@ export default function App() {
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item) => item.id}
         onRefresh={refreshContacts}
-        refreshing={isLoading}
+        refreshing={isLoading && !!contacts.length}
       />
     </>
   );
