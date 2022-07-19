@@ -47,13 +47,13 @@ const renderItem: ListRenderItem<Contacts.Contact> = ({ item }) => (
 const displayNotification = async () => {
   await notifee.requestPermission();
   const channelId = await notifee.createChannel({
-    id: "default0",
+    id: "default1",
     name: "Fakey Android Notification Channel",
     bypassDnd: true,
     description: "You have an incoming call",
     importance: AndroidImportance.HIGH,
     lightColor: AndroidColor.WHITE,
-    sound: "default",
+    sound: "ringtone",
     visibility: AndroidVisibility.PUBLIC,
   });
 
@@ -65,8 +65,14 @@ const displayNotification = async () => {
       fullScreenAction: { id: "default" },
       category: AndroidCategory.CALL,
       actions: [
-        { title: "Reject", pressAction: { id: "reject" } },
-        { title: "Accept", pressAction: { id: "accept" } },
+        {
+          title: "Reject",
+          pressAction: { id: "reject", launchActivity: "default" },
+        },
+        {
+          title: "Accept",
+          pressAction: { id: "accept", launchActivity: "default" },
+        },
       ],
     },
   });
