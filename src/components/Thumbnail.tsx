@@ -1,4 +1,4 @@
-import { ComponentProps } from "react";
+import React, { ComponentProps } from "react";
 import { StyleSheet, View } from "react-native";
 
 import FakeyText from "./FakeyText";

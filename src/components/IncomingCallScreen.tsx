@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import React, { Pressable, StyleSheet, View } from "react-native";
 import FakeyText from "./FakeyText";
 
 export default function IncomingCallScreen() {

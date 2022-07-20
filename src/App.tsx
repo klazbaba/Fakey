@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -9,6 +9,7 @@ import {
   Pressable,
   Linking,
   Alert,
+  Platform,
 } from "react-native";
 import * as Contacts from "expo-contacts";
 import { DeviceEventEmitter } from "react-native";
@@ -28,6 +29,7 @@ import { getContacts } from "./utilities/getContacts";
 import Thumbnail from "./components/Thumbnail";
 
 const colors = ["pink", "blue", "violet"];
+const image = require("./assets/minions.jpeg");
 
 const renderItem: ListRenderItem<Contacts.Contact> = ({ item }) => (
   <Pressable style={styles.contact}>
@@ -104,9 +106,9 @@ const displayNotification = async () => {
       autoCancel: false,
       style: {
         type: AndroidStyle.BIGPICTURE,
-        picture: require("./assets/minions.jpeg"),
+        picture: image,
       },
-      largeIcon: require("./assets/minions.jpeg"),
+      largeIcon: image,
     },
     ios: {
       foregroundPresentationOptions: {
@@ -117,6 +119,7 @@ const displayNotification = async () => {
       critical: true,
       criticalVolume: 1.0,
       categoryId: "faker",
+      attachments: [{ url: image }],
     },
   });
 };
@@ -137,16 +140,8 @@ export default function App() {
       setContacts(contacts!);
       setIsLoading(false);
 
-      QuickActions.setShortcutItems(
-        contacts?.map((contact) => ({
-          type: "contact",
-          title: contact.name,
-          icon: "splashscreen_image",
-          userInfo: { url: contact.phoneNumbers?.[0].number! },
-        }))!
-      );
-
-      await messaging().registerDeviceForRemoteMessages();
+      if (Platform.OS === "android")
+        await messaging().registerDeviceForRemoteMessages();
     });
 
     notifee.onForegroundEvent(({ type, detail }) => {
@@ -172,8 +167,12 @@ export default function App() {
 
     setNotificationCategory();
 
-    messaging().onMessage(displayNotification);
-    messaging().setBackgroundMessageHandler(displayNotification);
+    if (Platform.OS === "android") {
+      messaging().onMessage(displayNotification);
+      messaging().setBackgroundMessageHandler(displayNotification);
+    }
+
+    if (Platform.OS === "ios") setTimeout(() => displayNotification(), 5000);
 
     return () => listener.remove();
   }, []);
@@ -202,7 +201,7 @@ export default function App() {
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item) => item.id}
         onRefresh={refreshContacts}
-        refreshing={isLoading && !!contacts.length}
+        refreshing={isLoading && !!contacts?.length}
       />
     </>
   );

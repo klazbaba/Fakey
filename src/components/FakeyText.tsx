@@ -1,4 +1,4 @@
-import { ComponentProps, ReactText } from "react";
+import React, { ComponentProps, ReactText } from "react";
 import { StyleSheet, Text } from "react-native";
 
 interface Props extends ComponentProps<typeof Text> {
