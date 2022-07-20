@@ -17,9 +17,11 @@ import notifee, {
   AndroidCategory,
   AndroidColor,
   AndroidImportance,
+  AndroidStyle,
   AndroidVisibility,
   EventType,
 } from "@notifee/react-native";
+import messaging from "@react-native-firebase/messaging";
 
 import FakeyText from "./components/FakeyText";
 import { getContacts } from "./utilities/getContacts";
@@ -65,7 +67,7 @@ const setNotificationCategory = async () => {
 const displayNotification = async () => {
   await notifee.requestPermission({ criticalAlert: true });
   const channelId = await notifee.createChannel({
-    id: "default1",
+    id: "default2",
     name: "Fakey Notification Channel",
     bypassDnd: true,
     description: "You have an incoming call",
@@ -73,6 +75,7 @@ const displayNotification = async () => {
     lightColor: AndroidColor.WHITE,
     sound: "ringtone",
     visibility: AndroidVisibility.PUBLIC,
+    lights: true,
   });
 
   await notifee.displayNotification({
@@ -80,19 +83,30 @@ const displayNotification = async () => {
     body: "John",
     android: {
       channelId,
-      fullScreenAction: { id: "default" },
+      fullScreenAction: {
+        id: "default",
+        mainComponent: "incomingCallScreen",
+        launchActivity: "default",
+      },
       category: AndroidCategory.CALL,
       actions: [
         {
           title: "Reject",
-          pressAction: { id: "reject", launchActivity: "default" },
+          pressAction: { id: "reject", mainComponent: "main" },
         },
         {
           title: "Accept",
-          pressAction: { id: "accept", launchActivity: "default" },
+          pressAction: { id: "accept", mainComponent: "main" },
         },
       ],
-      sound: "ringtone",
+      sound: "ringtone", // For Android < 8.0
+      importance: AndroidImportance.HIGH, // For Android < 8.0
+      autoCancel: false,
+      style: {
+        type: AndroidStyle.BIGPICTURE,
+        picture: require("./assets/minions.jpeg"),
+      },
+      largeIcon: require("./assets/minions.jpeg"),
     },
     ios: {
       foregroundPresentationOptions: {
@@ -119,7 +133,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    getContacts().then((contacts) => {
+    getContacts().then(async (contacts) => {
       setContacts(contacts!);
       setIsLoading(false);
 
@@ -131,12 +145,18 @@ export default function App() {
           userInfo: { url: contact.phoneNumbers?.[0].number! },
         }))!
       );
+
+      await messaging().registerDeviceForRemoteMessages();
     });
 
     notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.ACTION_PRESS && detail.pressAction?.id) {
         Alert.alert(`Call was ${detail.pressAction?.id}ed`);
       }
+    });
+
+    notifee.onBackgroundEvent(async (event) => {
+      // console.log(JSON.stringify(event, null, 2));
     });
 
     const listener = DeviceEventEmitter.addListener(
@@ -151,8 +171,9 @@ export default function App() {
       .catch(console.error);
 
     setNotificationCategory();
-    // Simulate incoming call
-    setTimeout(() => displayNotification(), 5000);
+
+    messaging().onMessage(displayNotification);
+    messaging().setBackgroundMessageHandler(displayNotification);
 
     return () => listener.remove();
   }, []);

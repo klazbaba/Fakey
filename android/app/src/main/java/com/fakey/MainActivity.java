@@ -8,6 +8,7 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
 
 import expo.modules.ReactActivityDelegateWrapper;
+import io.invertase.notifee.NotifeeApiModule;
 
 public class MainActivity extends ReactActivity {
   @Override
@@ -25,7 +26,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "main";
+    return NotifeeApiModule.getMainComponent("main");
   }
 
   @Override
