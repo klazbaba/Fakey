@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "Fakey",
+    "slug": "Fakey",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
